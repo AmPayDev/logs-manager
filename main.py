@@ -3,7 +3,7 @@ import time
 import requests
 import schedule
 
-BOT_CALLBACK_FILE_URL = 'https://eba8-46-0-170-182.ngrok-free.app/bot/7887265810:AAHUTu_H3Glj7s3oO7VeSKyKIt-QYZWaCUw/log/file/all'
+BOT_CALLBACK_FILE_URL = 'https://dwhook-logs.lskv-group.ru/bot/7887265810:AAHUTu_H3Glj7s3oO7VeSKyKIt-QYZWaCUw/log/file/all'
 
 
 class Cleaner:
@@ -32,11 +32,11 @@ class Cleaner:
 
 
 def job() -> None:
-    cleaner = Cleaner(path="/Users/dmitriy/Desktop/work/backend/new_backend/logs/all.log")
+    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/request.log")
     cleaner.proccessing_clean()
 
 
-schedule.every(20).seconds.do(job)
+schedule.every(10).minutes.do(job)
 
 while True:
     schedule.run_pending()
