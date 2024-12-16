@@ -11,7 +11,7 @@ BOT_CALLBACK_FILE_URL = env('BOT_CALLBACK_FILE_URL')
 class Cleaner:
     def __init__(self, path: str) -> None:
         self.path = path
-        self.filenames_list = ['all.log', 'celery.log', 'callback.log', 'debug.log', 'django.log', 'request.log']
+        self.filenames_list = ['all.log', 'callback.log', 'debug.log', 'django.log', 'request.log']
 
     def proccessing_clean(self) -> None:
         self.send_log_file_to_bot()
