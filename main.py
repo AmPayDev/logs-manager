@@ -2,21 +2,25 @@ import logging
 import time
 import requests
 import schedule
-
-BOT_CALLBACK_FILE_URL = 'https://dwhook-logs.lskv-group.ru/bot/7887265810:AAHUTu_H3Glj7s3oO7VeSKyKIt-QYZWaCUw/log/file/all'
+from dotenv import load_dotenv
+from os import getenv as env
+load_dotenv()
+BOT_CALLBACK_FILE_URL = env('BOT_CALLBACK_FILE_URL')
 
 
 class Cleaner:
     def __init__(self, path: str) -> None:
         self.path = path
+        self.filenames_list = ['all.log', 'celery.log', 'callback.log', 'debug.log', 'django.log', 'request.log']
 
-    def clear_file(self) -> None:
-        with open(self.path, 'w') as file:
-            file.truncate(0)
-            logging.info('File cleaned')
+    def proccessing_clean(self) -> None:
+        self.send_log_file_to_bot()
+        for filename in self.filenames_list:
+            self.clear_log_file(filename)
+        logging.info('All tasks ended successful')
 
     def send_log_file_to_bot(self) -> bool:
-        with open(self.path, 'r') as file:
+        with open(f"{self.path}/all.log", 'r') as file:
             res = {'content': file.read()}
             request = requests.post(url=BOT_CALLBACK_FILE_URL, json=res)
             if request.status_code != 200:
@@ -24,15 +28,14 @@ class Cleaner:
                 return False
             return True
 
-
-    def proccessing_clean(self) -> None:
-        self.send_log_file_to_bot()
-        self.clear_file()
-        logging.info('All tasks ended successful')
+    def clear_log_file(self, file_name: str) -> None:
+        with open(f"{self.path}/{file_name}", "w") as file:
+            file.truncate(0)
+        logging.info(f'File {file_name} cleaned')
 
 
 def job() -> None:
-    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/all.log")
+    cleaner = Cleaner(path=env('PATH'))
     cleaner.proccessing_clean()
 
 
