@@ -32,11 +32,11 @@ class Cleaner:
 
 
 def job() -> None:
-    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/buffer_all.log")
+    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/all.log")
     cleaner.proccessing_clean()
 
 
-schedule.every(10).minutes.do(job)
+schedule.every().day.at("00:01").do(job())
 
 while True:
     schedule.run_pending()
