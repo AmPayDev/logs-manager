@@ -32,7 +32,7 @@ class Cleaner:
 
 
 def job() -> None:
-    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/request.log")
+    cleaner = Cleaner(path="/home/ampayuser/new_backend_v.2.0/new_backend/logs/all.log")
     cleaner.proccessing_clean()
 
 
