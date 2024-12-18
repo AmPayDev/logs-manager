@@ -40,7 +40,7 @@ def job() -> None:
     cleaner.proccessing_clean()
 
 
-schedule.every().day.at("00:01").do(job)
+schedule.every().day.at("00:03").do(job)
 
 while True:
     schedule.run_pending()
