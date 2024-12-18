@@ -1,73 +1,47 @@
+import logging
 import time
-import zipfile
+import requests
+import schedule
+from dotenv import load_dotenv
 from os import getenv as env
-from contextlib import asynccontextmanager
-import os
-import uvicorn
-from aiogram import Bot, Dispatcher, types
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.types import FSInputFile
-from fastapi import FastAPI, Response
-from pydantic import BaseModel
-
-WEBHOOK_URL = env('WEBHOOK_URL')
-print(WEBHOOK_URL)
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-print(BOT_TOKEN)
-WEBHOOK_PATH = f"/bot/{BOT_TOKEN}"
-CHAT_ID = env('CHAT_ID')
+load_dotenv()
+BOT_CALLBACK_FILE_URL = env('BOT_CALLBACK_FILE_URL')
 
 
-class TgBot(BaseModel):
-    bot_token: str
+class Cleaner:
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self.filenames_list = ['all.log', 'callback.log', 'debug.log', 'django.log', 'request.log']
 
-bot = Bot(
-    token=TgBot(bot_token=BOT_TOKEN).bot_token,
-    default=DefaultBotProperties(parse_mode=ParseMode.HTML),
-)
-dp = Dispatcher()
+    def proccessing_clean(self) -> None:
+        self.send_log_file_to_bot()
+        for filename in self.filenames_list:
+            self.clear_log_file(filename)
+        logging.info('All tasks ended successful')
 
-# type: ignore
+    def send_log_file_to_bot(self) -> bool:
+        with open(f"{self.path}/all.log", 'r') as file:
+            res = {'content': file.read()}
+            query_params = {'server_name': 'ampay'}
+            request = requests.post(url=BOT_CALLBACK_FILE_URL, json=res, query_params=query_params)
+            if request.status_code != 200:
+                logging.info('Wrong request')
+                return False
+            return True
 
-WEBHOOK_URL_FULL = f"{WEBHOOK_URL}{WEBHOOK_PATH}"
+    def clear_log_file(self, file_name: str) -> None:
+        with open(f"{self.path}/{file_name}", "w") as file:
+            file.truncate(0)
+        logging.info(f'File {file_name} cleaned')
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await bot.set_webhook(url=WEBHOOK_URL_FULL)
-    yield
-    await bot.delete_webhook()
+def job() -> None:
+    cleaner = Cleaner(path=env('LOGS_PATH'))
+    cleaner.proccessing_clean()
 
 
+schedule.every().day.at("00:01").do(job)
 
-app = FastAPI(lifespan=lifespan)
-
-
-@app.post(WEBHOOK_PATH)
-async def bot_webhook(update: dict):
-    telegram_update = types.Update(**update)
-    await dp.feed_update(bot=bot, update=telegram_update)
-
-url_path = (f"{WEBHOOK_PATH}/log/file/all" + "/{server_name}")
-
-@app.post(url_path)
-async def get_all_log_file_view(server_name: str, file_content: dict):
-    file_name = f"{server_name} | {time.ctime()}"
-    if file_content['content'] == "":
-        return Response(status_code=400)
-    with open(f'{file_name}.log', 'w') as file:
-        file.write(file_content['content'])
-    zip_file_name = f'{file_name}.zip'
-
-    with zipfile.ZipFile(zip_file_name, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        zip_file.write(f'{file_name}.log')
-
-    document = FSInputFile(f'{file_name}.zip')
-    await bot.send_document(chat_id=CHAT_ID, document=document)
-    os.remove(f'{file_name}.log')
-    os.remove(f'{file_name}.zip')
-    return Response(status_code=200)
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8392)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
