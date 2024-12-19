@@ -23,7 +23,7 @@ class Cleaner:
         with open(f"{self.path}/all.log", 'r') as file:
             res = {'content': file.read()}
             query_params = {'server_name': 'ampay'}
-            request = requests.post(url=BOT_CALLBACK_FILE_URL, json=res, query_params=query_params)
+            request = requests.post(url=BOT_CALLBACK_FILE_URL, json=res, params=query_params)
             if request.status_code != 200:
                 logging.info('Wrong request')
                 return False
