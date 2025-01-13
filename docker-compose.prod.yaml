@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+
+  logs_clean_app:
+    container_name: logs_clean_app
+    build:
+      context: .
+    tty: true
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"    # Максимальный размер одного лог-файла (например, 10 мегабайт)
+        max-file: "3"      # Максимальное количество лог-файлов (3 резервные копии)
+    volumes:
+      - ${LOGS_PATH}:/web/logs/
+    env_file:
+      - .env
+    command: >
+      sh -c 'python3 main.py'
