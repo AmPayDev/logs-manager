@@ -46,7 +46,7 @@ class Cleaner:
 
 
 def job() -> None:
-    cleaner = Cleaner(path='/web/logs/')
+    cleaner = Cleaner(path='/web/logs')
     logging.info('>>>>>>>>>>>>>>> Старт очистки логов <<<<<<<<<<<<<<<')
     cleaner.proccessing_clean()
 
